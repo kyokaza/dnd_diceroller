@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random D&D Item Picker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+<!-- Common: 50-100 gp
+Uncommon: 101-500 gp
+Rare: 501-5000 gp
+Very rare: 5001-50000 gp
+Legendary: 50001+ gp
+A scroll's rarity depends on the spell's level:
+Cantrip-1: Common
+2-3: Uncommon
+4-5: Rare
+6-8: Very rare
+9: Legendary -->
+</head>
+<body>
+    <h1>Random Spell, Potion, Gem or Magic Item Picker</h1>
+
+    <button onclick="pickRandom('cantrip')">Pick a Cantrip</button>
+    <button onclick="pickRandom('spell1')">Pick a 1st Level Spell</button>
+    <button onclick="pickRandom('spell2')">Pick a 2nd Level Spell</button>
+    <button onclick="pickRandom('potion')">Pick a Potion</button>
+    <button onclick="pickRandom('gem')">Pick a Gem</button>
+    <button onclick="pickRandom('item')">Pick a Minor Magic Item</button>
+    <button onclick="pickRandom('attunement')">Pick an Attunement</button>
+
+    <div id="result"></div>
+    <div id="attunement"></div>
+
+
+    <script>
+        const funnyAttunements = [
+            "To attune, you must meditate with the item for one hour, focusing on its magical properties.",
+            "Attunement requires you to spend one uninterrupted hour studying the item’s runes and inscriptions.",
+            "You must wield the item in combat at least once to attune to its magic.",
+            "To attune, you must spend an hour cleaning and polishing the item, treating it with care.",
+            "Attunement requires you to infuse the item with your spellcasting ability for one uninterrupted hour.",
+            "You must practice using the item’s abilities for one hour, focusing on channeling your energy into it.",
+            "To attune, you must sleep with the item in your possession for a full night.",
+            "Attunement requires a bond of trust; you must keep the item in close proximity for a full day.",
+            "You must spend an hour meditating and concentrating on the item’s magical aura.",
+            "To attune, you must bathe the item in moonlight for an hour while focusing on its power.",
+            "Attunement requires you to spill a drop of your own blood on the item and meditate with it for an hour.",
+            "You must use the item in a ritual related to its purpose for at least one hour to attune.",
+            "To attune, you must wear or carry the item without removing it for a full day.",
+            "Attunement requires you to synchronize your breathing with the item’s magical hum for an hour.",
+            "You must practice channeling your willpower through the item for an hour to attune.",
+            "To attune, you must whisper a personal secret to the item and meditate with it for an hour.",
+            "Attunement requires an offering; you must sacrifice a small personal item while focusing on the magic item for one hour.",
+            "You must draw a circle of protection and sit within it while holding the item for one hour to attune.",
+            "To attune, you must spend an hour practicing with the item, using it as if in combat or spellcasting.",
+            "Attunement requires you to focus on the item while completing a simple task, such as cleaning or walking for an hour.",
+            "You must inscribe a personal symbol or rune on the item while focusing on its energy for an hour to attune.",
+            "To attune, you must spend an hour chanting a mantra or spell related to the item’s power.",
+            "Attunement requires you to spend an hour in silence, focusing solely on the item’s magical resonance.",
+            "You must meditate with the item in hand for one hour, reflecting on your past and future goals.",
+            "To attune, you must immerse the item in a natural element (water, fire, earth, or air) for an hour while meditating.",
+            "Attunement requires you to spend an hour engraving the item with a personal sigil or mark.",
+            "You must perform a small ritual, such as lighting incense or candles, and meditate with the item for an hour to attune.",
+            "To attune, you must focus on your connection to the magical item while casting a simple spell for an hour.",
+            "Attunement requires you to commune with the item’s magical essence by sitting quietly with it for an hour.",
+            "You must spend an hour reciting an ancient poem or song about the item’s origin to attune to its magic."
+        ];
+
+        const cantrips = [
+            {name: "Acid Splash", description: "Hurl a bubble of acid at one or two creatures.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/acid-splash"},
+            {name: "Blade Ward", description: "Grant yourself resistance to bludgeoning, piercing, and slashing damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/blade-ward"},
+            {name: "Booming Blade", description: "Imbue your weapon with thunderous energy, dealing additional damage if the target moves.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/booming-blade"},
+            {name: "Chill Touch", description: "Create a ghostly skeletal hand that deals necrotic damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/chill-touch"},
+            {name: "Control Flames", description: "Expand or extinguish nonmagical flames in a 5-foot cube.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/control-flames"},
+            {name: "Create Bonfire", description: "Summon a bonfire in an unoccupied space, dealing fire damage to nearby creatures.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/create-bonfire"},
+            {name: "Dancing Lights", description: "Create four torch-sized lights that hover and move.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/dancing-lights"},
+            {name: "Druidcraft", description: "Whisper to nature, creating harmless sensory effects.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/druidcraft"},
+            {name: "Eldritch Blast", description: "A beam of crackling energy that deals force damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/eldritch-blast"},
+            {name: "Encode Thoughts", description: "Extract and preserve your thoughts as tangible strings of light.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/encode-thoughts"},
+            {name: "Fire Bolt", description: "A fiery bolt deals 1d10 fire damage to a target.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/fire-bolt"},
+            {name: "Frostbite", description: "Cause frost to form on a creature, dealing cold damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/frostbite"},
+            {name: "Green-Flame Blade", description: "Your blade bursts into green flame, dealing damage to your target and another nearby.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/green-flame-blade"},
+            {name: "Guidance", description: "Grant a d4 bonus to a creature’s ability check.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/guidance"},
+            {name: "Gust", description: "Manipulate air to push or move objects.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/gust"},
+            {name: "Infestation", description: "Summon a cloud of mites that deal poison damage and move the target.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/infestation"},
+            {name: "Light", description: "Create a bright light from an object you touch.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/light"},
+            {name: "Lightning Lure", description: "Pull a creature towards you with a bolt of lightning, dealing damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/lightning-lure"},
+            {name: "Mage Hand", description: "Conjure a spectral hand to manipulate objects at a distance.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/mage-hand"},
+            {name: "Mending", description: "Repair a small break or tear in an object.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/mending"},
+            {name: "Message", description: "Send a short message that only one creature can hear.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/message"},
+            {name: "Minor Illusion", description: "Create a sound or image of an object within range.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/minor-illusion"},
+            {name: "Mold Earth", description: "Shape loose earth in a 5-foot cube.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/mold-earth"},
+            {name: "Poison Spray", description: "A puff of noxious gas deals poison damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/poison-spray"},
+            {name: "Prestidigitation", description: "A minor magical trick to clean, soil, or create small effects.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/prestidigitation"},
+            {name: "Primal Savagery", description: "Grow claws or fangs, dealing acid damage in a melee attack.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/primal-savagery"},
+            {name: "Produce Flame", description: "Summon a flame in your hand that can deal fire damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/produce-flame"},
+            {name: "Ray of Frost", description: "A chilling ray that deals cold damage and reduces movement.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/ray-of-frost"},
+            {name: "Resistance", description: "Grant a creature a d4 bonus to a saving throw.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/resistance"},
+            {name: "Sacred Flame", description: "Radiant flame descends on a target dealing radiant damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/sacred-flame"},
+            {name: "Shape Water", description: "Control the flow and shape of water.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/shape-water"},
+            {name: "Shape Water", description: "Manipulate water in a 5-foot cube, freezing or shaping it.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/shape-water"},
+            {name: "Shillelagh", description: "Imbue a club or quarterstaff with magical energy, using your spellcasting modifier for attack rolls.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/shillelagh"},
+            {name: "Shocking Grasp", description: "A lightning-infused touch attack.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/shocking-grasp"},
+            {name: "Spare the Dying", description: "Stabilize a creature at 0 hit points.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/spare-the-dying"},
+            {name: "Sword Burst", description: "Create a ring of spectral blades that deal force damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/sword-burst"},
+            {name: "Thaumaturgy", description: "Create minor supernatural effects for 1 minute.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/thaumaturgy"},
+            {name: "Thorn Whip", description: "Create a whip of thorns that pulls creatures towards you.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/thorn-whip"},
+            {name: "Thunderclap", description: "Create a thunderous sound that deals thunder damage to nearby creatures.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/thunderclap"},
+            {name: "Toll the Dead", description: "Deal necrotic damage to a creature, dealing more damage if it's wounded.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/toll-the-dead"},
+            {name: "True Strike", description: "Grant yourself advantage on your next attack roll.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/true-strike"},
+            {name: "Vicious Mockery", description: "Hurl a string of insults at a creature, dealing psychic damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/vicious-mockery"},
+            {name: "Word of Radiance", description: "Speak a divine word to deal radiant damage to nearby creatures.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/word-of-radiance"}
+        ];
+
+        const firstLevelSpells = [
+            {name: "Alarm", description: "Create a mental alarm to alert you of intruders.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/alarm"},
+            {name: "Armor of Agathys", description: "Gain temporary hit points and deal cold damage to attackers.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/armor-of-agathys"},
+            {name: "Bane", description: "Cause up to three creatures to suffer penalties to attacks and saving throws.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/bane"},
+            {name: "Bane", description: "Up to three creatures suffer a d4 penalty to attack rolls and saving throws.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/bane"},
+            {name: "Bless", description: "Up to three creatures gain a d4 bonus to attack rolls and saving throws.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/bless"},
+            {name: "Burning Hands", description: "A 15-foot cone of fire deals 3d6 damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/burning-hands"},
+            {name: "Catapult", description: "Hurl an object weighing 1 to 5 pounds at a target.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/catapult"},
+            {name: "Chaos Bolt", description: "Hurl a bolt of energy that can change damage types unpredictably.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/chaos-bolt"},
+            {name: "Charm Person", description: "Charm a humanoid to treat you as a friendly acquaintance.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/charm-person"},
+            {name: "Chromatic Orb", description: "Create an orb of energy that deals 3d8 damage of a chosen type.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/chromatic-orb"},
+            {name: "Command", description: "Issue a one-word command to a creature, forcing it to obey.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/command"},
+            {name: "Compelled Duel", description: "Magically compel a creature to duel you.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/compelled-duel"},
+            {name: "Cure Wounds", description: "Heal a creature you touch.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/cure-wounds"},
+            {name: "Detect Evil and Good", description: "Detect aberrations, celestials, elementals, fey, fiends, or undead within 30 feet.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/detect-evil-and-good"},
+            {name: "Detect Magic", description: "Sense the presence of magic within 30 feet.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/detect-magic"},
+            {name: "Detect Poison and Disease", description: "Sense the presence of poison, poisonous creatures, or disease.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/detect-poison-and-disease"},
+            {name: "Disguise Self", description: "Make yourself look different.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/disguise-self"},
+            {name: "Earth Tremor", description: "Cause a tremor in the ground that can knock creatures prone.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/earth-tremor"},
+            {name: "Earth Tremor", description: "Cause a tremor in the ground that knocks creatures prone.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/earth-tremor"},
+            {name: "Ensnaring Strike", description: "Your next attack ensnares your target in magical vines.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/ensnaring-strike"},
+            {name: "Entangle", description: "Cause plants to entangle creatures in a 20-foot square.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/entangle"},
+            {name: "Faerie Fire", description: "Outline creatures in light, granting advantage on attack rolls against them.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/faerie-fire"},
+            {name: "False Life", description: "Bolster yourself with temporary hit points.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/false-life"},
+            {name: "Feather Fall", description: "Slow the fall of up to five falling creatures.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/feather-fall"},
+            {name: "Fog Cloud", description: "Create a 20-foot-radius sphere of fog that obscures vision.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/fog-cloud"},
+            {name: "Grease", description: "Create a slick grease on the ground, causing creatures to fall prone.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/grease"},
+            {name: "Guiding Bolt", description: "A flash of light deals 4d6 radiant damage and gives advantage on the next attack.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/guiding-bolt"},
+            {name: "Hail of Thorns", description: "Your next attack causes a hail of thorns to strike nearby creatures.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/hail-of-thorns"},
+            {name: "Healing Word", description: "Heal a creature within range as a bonus action.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/healing-word"},
+            {name: "Heroism", description: "Grant temporary hit points to a creature and make it immune to fear.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/heroism"},
+            {name: "Heroism", description: "Grant temporary hit points to a creature and make it immune to fear.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/heroism"},
+            {name: "Hunter's Mark", description: "Mark a target, dealing additional damage and making it easier to track.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/hunters-mark"},
+            {name: "Ice Knife", description: "Create a shard of ice that explodes and deals cold damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/ice-knife"},
+            {name: "Identify", description: "Learn the properties of a magical item or spell.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/identify"},
+            {name: "Identify", description: "Learn the properties of a magical item or spell.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/identify"},
+            {name: "Inflict Wounds", description: "A melee spell attack deals 3d10 necrotic damage.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/inflict-wounds"},
+            {name: "Jump", description: "Triple the target's jump distance.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/jump"},
+            {name: "Longstrider", description: "Increase a creature's speed by 10 feet for an hour.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/longstrider"},
+            {name: "Mage Armor", description: "Protect a creature with magical armor.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/mage-armor"},
+            {name: "Mage Armor", description: "Protects a creature with magical armor, giving it an AC of 13 + Dex modifier.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/mage-armor"},
+            {name: "Magic Missile", description: "Create three magical darts that automatically hit.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/magic-missile"},
+            {name: "Protection from Evil and Good", description: "Protect a creature from aberrations, celestials, elementals, fey, fiends, and undead.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/protection-from-evil-and-good"},
+            {name: "Sanctuary", description: "Protect a creature from attacks until it attacks.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/sanctuary"},
+            {name: "Searing Smite", description: "Your next weapon attack deals fire damage and ignites the target.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/searing-smite"},
+            {name: "Shield", description: "Create a magical shield that increases your AC.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/shield"},
+            {name: "Shield", description: "Grants +5 AC as a reaction to an incoming attack.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/shield"},
+            {name: "Silent Image", description: "Create the image of an object or creature.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/silent-image"},
+            {name: "Sleep", description: "Magically puts creatures to sleep in a 20-foot radius.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/sleep"},
+            {name: "Tasha’s Hideous Laughter", description: "A creature falls into fits of laughter, incapacitated.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/tashas-hideous-laughter"},
+            {name: "Thunderwave", description: "A wave of force deals 2d8 thunder damage and pushes creatures away.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/thunderwave"},
+            {name: "Unseen Servant", description: "Create an invisible force that performs simple tasks.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/unseen-servant"},
+            {name: "Witch Bolt", description: "A beam of crackling energy deals lightning damage over time.", price: "50-100 gp", link: "https://www.dndbeyond.com/spells/witch-bolt"}
+        ];
+
+        const secondLevelSpells = [
+            {name: "Aid", description: "Bolster up to three creatures’ hit points.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/aid"},
+            {name: "Alter Self", description: "Change your appearance or gain natural weapons.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/alter-self"},
+            {name: "Arcane Lock", description: "Magically lock a door, window, or chest.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/arcane-lock"},
+            {name: "Augury", description: "Ask a deity about a specific course of action.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/augury"},
+            {name: "Blindness/Deafness", description: "Blind or deafen a creature.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/blindness-deafness"},
+            {name: "Blur", description: "Your form becomes blurry, making it harder to hit.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/blur"},
+            {name: "Calm Emotions", description: "Suppress strong emotions in a group of people.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/calm-emotions"},
+            {name: "Cloud of Daggers", description: "Create a cloud of spinning daggers.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/cloud-of-daggers"},
+            {name: "Crown of Madness", description: "Cause a humanoid to attack nearby creatures.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/crown-of-madness"},
+            {name: "Darkness", description: "Create a magical sphere of darkness.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/darkness"},
+            {name: "Darkvision", description: "Grant a creature the ability to see in the dark.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/darkvision"},
+            {name: "Detect Thoughts", description: "Read the surface thoughts of a creature.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/detect-thoughts"},
+            {name: "Enhance Ability", description: "Grant a creature advantage on ability checks for a specific ability.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/enhance-ability"},
+            {name: "Enlarge/Reduce", description: "Increase or decrease a creature's size.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/enlarge-reduce"},
+            {name: "Flame Blade", description: "Summon a blade of fire to deal damage.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/flame-blade"},
+            {name: "Flaming Sphere", description: "Summon a sphere of fire that deals damage to nearby creatures.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/flaming-sphere"},
+            {name: "Gust of Wind", description: "Create a line of strong wind that pushes creatures.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/gust-of-wind"},
+            {name: "Heat Metal", description: "Cause a metal object to glow red-hot and deal damage.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/heat-metal"},
+            {name: "Hold Person", description: "Paralyze a humanoid for the duration if it fails a Wisdom saving throw.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/hold-person"},
+            {name: "Invisibility", description: "Make a creature invisible.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/invisibility"},
+            {name: "Knock", description: "Open a locked door, chest, or other object.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/knock"},
+            {name: "Lesser Restoration", description: "Cure a creature of paralysis, blindness, deafness, or poison.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/lesser-restoration"},
+            {name: "Levitate", description: "Cause a creature or object to float.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/levitate"},
+            {name: "Magic Weapon", description: "Make a weapon magical.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/magic-weapon"},
+            {name: "Mirror Image", description: "Create illusory duplicates of yourself to confuse attackers.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/mirror-image"},
+            {name: "Misty Step", description: "Teleport up to 30 feet to an unoccupied space you can see.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/misty-step"},
+            {name: "Moonbeam", description: "A beam of moonlight deals radiant damage to creatures within its radius.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/moonbeam"},
+            {name: "Pass Without Trace", description: "Give a +10 bonus to stealth checks to a group of creatures.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/pass-without-trace"},
+            {name: "Phantasmal Force", description: "Create an illusion that deals damage.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/phantasmal-force"},
+            {name: "Ray of Enfeeblement", description: "Weaken a creature’s physical attacks.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/ray-of-enfeeblement"},
+            {name: "Scorching Ray", description: "Fire three rays of fire at targets within range.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/scorching-ray"},
+            {name: "See Invisibility", description: "Gain the ability to see invisible creatures.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/see-invisibility"},
+            {name: "Shatter", description: "A sudden loud noise deals thunder damage in a 10-foot radius.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/shatter"},
+            {name: "Silence", description: "Create a 20-foot-radius sphere where no sound can be heard.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/silence"},
+            {name: "Spider Climb", description: "Grant a creature the ability to walk on walls and ceilings.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/spider-climb"},
+            {name: "Spike Growth", description: "Create a 20-foot-radius area of thorns that deals damage to creatures moving through it.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/spike-growth"},
+            {name: "Spiritual Weapon", description: "Create a floating, spectral weapon that can attack.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/spiritual-weapon"},
+            {name: "Suggestion", description: "Influence a creature’s actions with a limited suggestion.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/suggestion"},
+            {name: "Web", description: "Create a mass of sticky webbing that can trap creatures.", price: "100-500 gp", link: "https://www.dndbeyond.com/spells/web"}
+        ];
+
+        const potions = [
+            {name: "Elixir of Health", description: "Cures any disease or condition, such as blindness or paralysis.", price: "120 gp", link: "https://www.dndbeyond.com/magic-items/elixir-of-health"},
+            {name: "Elixir of Youth", description: "Magically reduces the drinker's age by 2d6 years.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/elixir-of-health"},
+            {name: "Oil of Etherealness", description: "Grants the effect of the etherealness spell for 1 hour.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/oil-of-etherealness"},
+            {name: "Oil of Slipperiness", description: "Grants the effect of the freedom of movement spell for 8 hours.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/oil-of-slipperiness"},
+            {name: "Potion of Animal Friendship", description: "Allows the drinker to cast animal friendship for 1 hour.", price: "200 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-animal-friendship"},
+            {name: "Potion of Clairvoyance", description: "Allows the drinker to use the clairvoyance spell.", price: "250 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-clairvoyance"},
+            {name: "Potion of Climbing", description: "Grants advantage on climbing checks and climbing speed equal to walking speed for 1 hour.", price: "150 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-climbing"},
+            {name: "Potion of Diminution", description: "Causes the drinker to shrink in size as per the reduce spell.", price: "270 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-diminution"},
+            {name: "Potion of Fire Breath", description: "Allows the drinker to exhale fire, dealing 4d6 fire damage.", price: "150 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-fire-breath"},
+            {name: "Potion of Fire Resistance", description: "Grants resistance to fire damage for 1 hour.", price: "100-500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-fire-resistance"},
+            {name: "Potion of Flying", description: "Grants a flying speed of 60 feet for 1 hour.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-flying"},
+            {name: "Potion of Frost Giant Strength", description: "Increases the drinker's Strength to 25 for 1 hour.", price: "700 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-frost-giant-strength"},
+            {name: "Potion of Gaseous Form", description: "Turns the drinker into a misty cloud as per the gaseous form spell.", price: "300 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-gaseous-form"},
+            {name: "Potion of Giant Strength (Cloud)", description: "Grants the drinker a Strength score of 27.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-cloud-giant-strength"},
+            {name: "Potion of Greater Healing", description: "Restores 4d4 + 4 hit points when consumed.", price: "150 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-greater-healing"},
+            {name: "Potion of Growth", description: "Causes the drinker to grow in size as per the enlarge spell.", price: "270 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-growth"},
+            {name: "Potion of Healing", description: "Restores 2d4 + 2 hit points when consumed.", price: "50-100 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-healing"},
+            {name: "Potion of Heroism", description: "Grants 10 temporary hit points and the effects of bless for 1 hour.", price: "180 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-heroism"},
+            {name: "Potion of Hill Giant Strength", description: "Increases the drinker's Strength to 21 for 1 hour.", price: "200 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-hill-giant-strength"},
+            {name: "Potion of Invisibility", description: "Turns the drinker invisible for 1 hour or until an attack is made.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-invisibility"},
+            {name: "Potion of Invulnerability", description: "Grants resistance to all damage for 1 minute.", price: "385 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-invulnerability"},
+            {name: "Potion of Longevity", description: "Reduces the drinker’s apparent age by 1d6 + 6 years.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-longevity"},
+            {name: "Potion of Mind Control", description: "Allows the drinker to cast dominate person.", price: "2500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-mind-control"},
+            {name: "Potion of Mind Reading", description: "Grants the effects of the detect thoughts spell for 1 hour.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-mind-reading"},
+            {name: "Potion of Poison", description: "Acts as a poison when consumed, dealing 3d6 poison damage.", price: "100-500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-poison"},
+            {name: "Potion of Resistance", description: "Grants resistance to a specific type of damage for 1 hour.", price: "300 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-resistance"},
+            {name: "Potion of Speed", description: "Grants the effect of the haste spell for 1 minute.", price: "300 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-speed"},
+            {name: "Potion of Speed", description: "Grants the effect of the haste spell for 1 minute.", price: "300 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-speed"},
+            {name: "Potion of Stone Giant Strength", description: "Increases the drinker's Strength to 23 for 1 hour.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-stone-giant-strength"},
+            {name: "Potion of Superior Healing", description: "Restores 8d4 + 8 hit points when consumed.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-superior-healing"},
+            {name: "Potion of Superior Water Breathing", description: "Allows the drinker to breathe underwater for 24 hours.", price: "2000 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-water-breathing"},
+            {name: "Potion of Supreme Healing", description: "Restores 10d4 + 20 hit points when consumed.", price: "1350 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-supreme-healing"},
+            {name: "Potion of Vitality", description: "Removes exhaustion, cures any disease or poison, and maximizes hit points for 24 hours.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-vitality"},
+            {name: "Potion of Water Breathing", description: "Allows the drinker to breathe underwater for 1 hour.", price: "250 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-water-breathing"}
+        ];
+
+        const gems = [
+            {name: "Alexandrite", description: "A rare gem that changes color under different lighting.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/alexandrite"},
+            {name: "Amber", description: "A translucent golden gem often used in magical components.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/amber"},
+            {name: "Amethyst", description: "A purple gemstone often used in magical rituals.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/amethyst"},
+            {name: "Aquamarine", description: "A pale blue gemstone associated with water-related spells.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/aquamarine"},
+            {name: "Black Onyx", description: "A glossy black gem, often used in necromantic magic.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/black-onyx"},
+            {name: "Black Pearl", description: "A rare and valuable pearl prized for its unique color.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/black-pearl"},
+            {name: "Bloodstone", description: "A dark green gemstone flecked with red, often associated with life magic.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/bloodstone"},
+            {name: "Blue Quartz", description: "A pale blue gemstone prized for its clarity.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/blue-quartz"},
+            {name: "Carnelian", description: "A bright orange-red stone commonly used in jewelry.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/carnelian"},
+            {name: "Chrysoberyl", description: "A rare greenish-golden gemstone.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/chrysoberyl"},
+            {name: "Chrysoprase", description: "A bright green stone associated with healing and rejuvenation.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/chrysoprase"},
+            {name: "Citrine", description: "A bright yellow gemstone.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/citrine"},
+            {name: "Coral", description: "A reddish organic gemstone harvested from the sea.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/coral"},
+            {name: "Diamond", description: "A clear, brilliant gem essential for certain resurrection spells.", price: "5000 gp", link: "https://www.dndbeyond.com/equipment/diamond"},
+            {name: "Emerald", description: "A vibrant green gemstone prized for its beauty and rarity.", price: "1000 gp", link: "https://www.dndbeyond.com/equipment/emerald"},
+            {name: "Garnet", description: "A dark red gem often associated with protection magic.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/garnet"},
+            {name: "Jade", description: "A smooth green stone often used in healing magic.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/jade"},
+            {name: "Jasper", description: "A red or yellow gem known for grounding energy.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/jasper"},
+            {name: "Jet", description: "A shiny black gem used in protection magic.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/jet"},
+            {name: "Lapis Lazuli", description: "A deep blue stone flecked with gold, known for enhancing wisdom.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/lapis-lazuli"},
+            {name: "Malachite", description: "A green gemstone, used for grounding and stability.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/malachite"},
+            {name: "Moonstone", description: "A translucent gemstone associated with lunar magic.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/moonstone"},
+            {name: "Obsidian", description: "A sharp black volcanic glass used in destructive magic.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/obsidian"},
+            {name: "Onyx", description: "A black gemstone associated with necromantic magic.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/onyx"},
+            {name: "Opal", description: "A multi-colored gem with magical properties, favored by illusionists.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/opal"},
+            {name: "Pearl", description: "A white, spherical gem used in divination and identification spells.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/pearl"},
+            {name: "Peridot", description: "A pale green stone associated with growth and nature.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/peridot"},
+            {name: "Quartz", description: "A common crystal used in basic magical implements.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/quartz"},
+            {name: "Rhodochrosite", description: "A pink gemstone tied to emotional healing and love.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/rhodochrosite"},
+            {name: "Ruby", description: "A bright red precious stone, valuable in magical rituals.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/ruby"},
+            {name: "Sapphire", description: "A deep blue gem often used in divination spells.", price: "1000 gp", link: "https://www.dndbeyond.com/equipment/sapphire"},
+            {name: "Spinel", description: "A gemstone that can appear in many colors, often mistaken for rarer stones.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/spinel"},
+            {name: "Sunstone", description: "A red-orange gem with radiant properties.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/sunstone"},
+            {name: "Tiger Eye", description: "A brownish-yellow gemstone with a banded pattern.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/tiger-eye"},
+            {name: "Topaz", description: "A golden gemstone used in evocation magic.", price: "500 gp", link: "https://www.dndbeyond.com/equipment/topaz"},
+            {name: "Tourmaline", description: "A multi-colored gemstone used to dispel illusions.", price: "100 gp", link: "https://www.dndbeyond.com/equipment/tourmaline"},
+            {name: "Turquoise", description: "A bright blue-green stone, prized for its calming properties.", price: "10 gp", link: "https://www.dndbeyond.com/equipment/turquoise"},
+            {name: "Zircon", description: "A translucent gemstone often used as a cheaper alternative to diamonds.", price: "50 gp", link: "https://www.dndbeyond.com/equipment/zircon"}
+        ];
+
+        const magicItems = [
+            {name: "+1 Weapons", description: "A magical weapon that grants a +1 bonus to attack and damage rolls.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/weapon"},
+            {name: "Adamantine Armor", description: "Prevents critical hits when worn.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/adamantine-armor"},
+            {name: "Alchemy Jug", description: "A jug that produces different liquids, such as water, oil, or vinegar.", price: "250 gp", link: "https://www.dndbeyond.com/magic-items/alchemy-jug"},
+            {name: "Amulet of Proof against Detection and Location", description: "Wearer is immune to divination magic and can’t be detected by magical means.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/amulet-of-proof-against-detection-and-location"},
+            {name: "Arrow-Catching Shield", description: "Grants a bonus to AC and the ability to catch arrows.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/arrow-catching-shield"},
+            {name: "Bag Of Beans", description: "A magical bag filled with beans that can have various effects when planted.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/bag-of-beans"},
+            {name: "Bag Of Holding", description: "A bag that can hold up to 500 pounds of material, but remains light.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/bag-of-holding"},
+            {name: "Bag of Tricks", description: "Pull out a fuzzy object that transforms into an animal.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/bag-of-tricks"},
+            {name: "Bead of Force", description: "Creates a force bubble that traps creatures inside.", price: "960 gp", link: "https://www.dndbeyond.com/magic-items/bead-of-force"},
+            {name: "Boots Of Elvenkind", description: "Grants the wearer advantage on Dexterity (Stealth) checks to move silently.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/boots-of-elvenkind"},
+            {name: "Boots of Striding and Springing", description: "Increases walking speed and allows for jumping greater distances.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/boots-of-striding-and-springing"},
+            {name: "Bottled Breath", description: "Allows the user to hold their breath or exhale gusts of air.", price: "250 gp", link: "https://www.dndbeyond.com/magic-items/bottled-breath"},
+            {name: "Bracers Of Archery", description: "Grants proficiency with bows and a bonus to damage rolls.", price: "1500 gp", link: "https://www.dndbeyond.com/magic-items/bracers-of-archery"},
+            {name: "Brooch Of Shielding", description: "Grants resistance to force damage and immunity to magic missile.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/brooch-of-shielding"},
+            {name: "Broom of Flying", description: "A magical broom that can fly.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/broom-of-flying"},
+            {name: "Cape of the Mountebank", description: "Wearer can teleport in a burst of smoke.", price: "800 gp", link: "https://www.dndbeyond.com/magic-items/cape-of-the-mountebank"},
+            {name: "Chime of Opening", description: "A chime that can be struck to unlock a locked object.", price: "2500 gp", link: "https://www.dndbeyond.com/magic-items/chime-of-opening"},
+            {name: "Circlet Of Blasting", description: "Allows the wearer to cast scorching ray.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/circlet-of-blasting"},
+            {name: "Cloak Of Billowing", description: "A cloak that billows dramatically on command.", price: "100 gp", link: "https://www.dndbeyond.com/magic-items/cloak-of-billowing"},
+            {name: "Cloak of Elvenkind", description: "A cloak that grants advantage on Stealth checks.", price: "750 gp", link: "https://www.dndbeyond.com/magic-items/cloak-of-elvenkind"},
+            {name: "Cloak of Invisibility", description: "Wearer becomes invisible until the cloak is removed.", price: "50000 gp", link: "https://www.dndbeyond.com/magic-items/cloak-of-invisibility"},
+            {name: "Cloak Of Protection", description: "Grants a +1 bonus to AC and saving throws.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/cloak-of-protection"},
+            {name: "Cloak of the Bat", description: "Grants advantage on Stealth checks and the ability to fly in dim light or darkness.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/cloak-of-the-bat"},
+            {name: "Cloak of the Manta Ray", description: "Allows the wearer to breathe underwater and swim at a speed of 60 feet.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/cloak-of-the-manta-ray"},
+            {name: "Clockwork Amulet", description: "Allows the wearer to replace an attack roll with a 10 once per day.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/clockwork-amulet"},
+            {name: "Decanter of Endless Water", description: "A container that produces unlimited water.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/decanter-of-endless-water"},
+            {name: "Dragon Slayer", description: "A weapon that deals extra damage to dragons.", price: "6000 gp", link: "https://www.dndbeyond.com/magic-items/dragon-slayer"},
+            {name: "Driftglobe", description: "A small, magical orb that emits light or daylight.", price: "750 gp", link: "https://www.dndbeyond.com/magic-items/driftglobe"},
+            {name: "Dust of Disappearance", description: "Makes you and nearby creatures invisible for 2d4 minutes.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/dust-of-disappearance"},
+            {name: "Dust of Dryness", description: "Absorbs up to 15 cubic feet of water.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/dust-of-dryness"},
+            {name: "Efreeti Bottle", description: "A bottle that can trap or summon an efreeti.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/efreeti-bottle"},
+            {name: "Eldritch Claw Tattoo", description: "Grants the ability to deal magical damage with unarmed strikes.", price: "1500 gp", link: "https://www.dndbeyond.com/magic-items/eldritch-claw-tattoo"},
+            {name: "Elemental Gems", description: "Summons an elemental when crushed.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/elemental-gem"},
+            {name: "Eversmoking Bottle", description: "Produces a continuous cloud of smoke when opened.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/eversmoking-bottle"},
+            {name: "Eyes Of Charming", description: "Allows the wearer to cast charm person three times per day.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/eyes-of-charming"},
+            {name: "Eyes Of Minute Seeing", description: "Grants advantage on Intelligence (Investigation) checks to closely inspect objects.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/eyes-of-minute-seeing"},
+            {name: "Eyes of the Eagle", description: "Grants advantage on Perception checks relying on sight.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/eyes-of-the-eagle"},
+            {name: "Figurine of Wondrous Power (Silver Raven)", description: "A small figurine that transforms into a raven.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/figurine-of-wondrous-power-silver-raven"},
+            {name: "Folding Boat", description: "A small box that unfolds into a boat.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/folding-boat"},
+            {name: "Gauntlets Of Ogre Power", description: "Sets the wearer's Strength score to 19.", price: "2000 gp", link: "https://www.dndbeyond.com/magic-items/gauntlets-of-ogre-power"},
+            {name: "Glamerweave", description: "Magically enchanted clothing that gives a bonus to Charisma (Persuasion) checks.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/glamerweave"},
+            {name: "Gloves of Thievery", description: "Grants a +5 bonus to sleight of hand and lockpicking checks.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/gloves-of-thievery"},
+            {name: "Goggles of Night", description: "Grants the wearer darkvision up to 60 feet.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/goggles-of-night"},
+            {name: "Hat of Disguise", description: "Allows the wearer to cast disguise self at will.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/hat-of-disguise"},
+            {name: "Headband Of Intellect", description: "Sets the wearer's Intelligence score to 19.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/headband-of-intellect"},
+            {name: "Helm of Teleportation", description: "Grants the ability to cast teleport.", price: "20000 gp", link: "https://www.dndbeyond.com/magic-items/helm-of-teleportation"},
+            {name: "Heward’s Handy Haversack", description: "A magical backpack with extra-dimensional storage space.", price: "2000 gp", link: "https://www.dndbeyond.com/magic-items/hewards-handy-haversack"},
+            {name: "Horseshoes of Speed", description: "Increases a horse’s speed by 30 feet.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/horseshoes-of-speed"},
+            {name: "Immovable Rod", description: "A rod that becomes immovable when a button is pressed.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/immovable-rod"},
+            {name: "Javelin of Lightning", description: "A javelin that turns into a bolt of lightning when thrown.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/javelin-of-lightning"},
+            {name: "Lantern of Revealing", description: "A lantern that reveals invisible creatures and objects in its light.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/lantern-of-revealing"},
+            {name: "Moon-Touched Sword", description: "A magical sword that glows in darkness and deals radiant damage.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/moon-touched-sword"},
+            {name: "Nature's Mantle", description: "Allows the wearer to hide while lightly obscured in natural environments.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/natures-mantle"},
+            {name: "Necklace of Adaptation", description: "Grants immunity to harmful gases and allows breathing in any environment.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/necklace-of-adaptation"},
+            {name: "Necklace of Fireballs", description: "Contains beads that can be thrown to cast fireball.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/necklace-of-fireballs"},
+            {name: "Pearl of Power", description: "Regain a spell slot up to 3rd level once per day.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/pearl-of-power"},
+            {name: "Periapt of Health", description: "Grants immunity to diseases.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/periapt-of-health"},
+            {name: "Philter Of Love", description: "A potion that causes a creature to fall in love with the first person it sees.", price: "300 gp", link: "https://www.dndbeyond.com/magic-items/philter-of-love"},
+            {name: "Pipes of Haunting", description: "Can frighten creatures when played.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/pipes-of-haunting"},
+            {name: "Pipes Of The Sewers", description: "Summons rats when played.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/pipes-of-the-sewers"},
+            {name: "Potion Of Climbing", description: "Grants climbing speed equal to walking speed.", price: "150 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-climbing"},
+            {name: "Potion of Flying", description: "Grants a flying speed of 60 feet for 1 hour.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-flying"},
+            {name: "Potion Of Resistance", description: "Grants resistance to one damage type for one hour.", price: "300 gp", link: "https://www.dndbeyond.com/magic-items/potion-of-resistance"},
+            {name: "Ring of Feather Falling", description: "Wearer always falls slowly, avoiding fall damage.", price: "1500 gp", link: "https://www.dndbeyond.com/magic-items/ring-of-feather-falling"},
+            {name: "Ring of Invisibility", description: "Turns the wearer invisible until they attack or cast a spell.", price: "50000 gp", link: "https://www.dndbeyond.com/magic-items/ring-of-invisibility"},
+            {name: "Ring of Jumping", description: "Allows the wearer to cast jump at will.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/ring-of-jumping"},
+            {name: "Ring of Water Walking", description: "Allows the wearer to walk on water.", price: "750 gp", link: "https://www.dndbeyond.com/magic-items/ring-of-water-walking"},
+            {name: "Robe Of Useful Items", description: "Contains patches that become useful items when pulled off.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/robe-of-useful-items"},
+            {name: "Rod of the Pact Keeper", description: "Grants a bonus to spell attack rolls and DCs for warlocks.", price: "15000 gp", link: "https://www.dndbeyond.com/magic-items/rod-of-the-pact-keeper"},
+            {name: "Rope of Climbing", description: "A 60-foot rope that responds to commands and ties itself.", price: "750 gp", link: "https://www.dndbeyond.com/magic-items/rope-of-climbing"},
+            {name: "Scimitar of Speed", description: "Grants an extra attack once per turn with the scimitar.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/scimitar-of-speed"},
+            {name: "Sending Stones", description: "Paired stones that allow communication between holders.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/sending-stones"},
+            {name: "Staff of Fire", description: "Grants access to fire spells like fireball and wall of fire.", price: "20000 gp", link: "https://www.dndbeyond.com/magic-items/staff-of-fire"},
+            {name: "Stone of Good Luck (Luckstone)", description: "Grants a +1 bonus to ability checks and saving throws.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/stone-of-good-luck-luckstone"},
+            {name: "Wand of Magic Detection", description: "A wand that can detect magic within 30 feet.", price: "750 gp", link: "https://www.dndbeyond.com/magic-items/wand-of-magic-detection"},
+            {name: "Wand of Magic Missiles", description: "Allows the casting of magic missile.", price: "1000 gp", link: "https://www.dndbeyond.com/magic-items/wand-of-magic-missiles"},
+            {name: "Wand of Polymorph", description: "Allows the casting of polymorph.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/wand-of-polymorph"},
+            {name: "Wand of Secrets", description: "A wand that reveals hidden doors and traps within 30 feet.", price: "500 gp", link: "https://www.dndbeyond.com/magic-items/wand-of-secrets"},
+            {name: "Wand Of The War Mage", description: "Grants a bonus to spell attack rolls.", price: "3000 gp", link: "https://www.dndbeyond.com/magic-items/wand-of-the-war-mage"},
+            {name: "Winged Boots", description: "Grants the ability to fly for up to 4 hours.", price: "5000 gp", link: "https://www.dndbeyond.com/magic-items/winged-boots"},
+            ];
+
+        function pickRandom(type) {
+            let result;
+            let attunement;
+            switch(type) {
+                case 'cantrip':
+                    result = cantrips[Math.floor(Math.random() * cantrips.length)];
+                    break;
+                case 'spell1':
+                    result = firstLevelSpells[Math.floor(Math.random() * firstLevelSpells.length)];
+                    break;
+                case 'spell2':
+                    result = secondLevelSpells[Math.floor(Math.random() * secondLevelSpells.length)];
+                    break;
+                case 'potion':
+                    result = potions[Math.floor(Math.random() * potions.length)];
+                    break;
+                case 'gem':
+                    result = gems[Math.floor(Math.random() * gems.length)];
+                    break;
+                case 'item':
+                    result = magicItems[Math.floor(Math.random() * magicItems.length)];
+                    break;
+                case 'attunement':
+                    attunement = funnyAttunements[Math.floor(Math.random() * funnyAttunements.length)];
+                    break;
+            }
+            
+            if (result) document.getElementById('result').innerHTML = `You got: <strong>${result.name}</strong><br>Description: ${result.description}<br>Price: ${result.price}<br>Source: <a href="${result.link}" target="_blank">D&D Beyond</a><br>`;
+            if(attunement) document.getElementById('attunement').innerHTML = `You got: <strong>${attunement}</strong><br>`;
+        }
+    </script>
+</body>
+</html>
