@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller with Custom Modifier Display</title>
+    <script>
+        // Function to roll dice based on input and generate the formatted output
+        function rollDice() {
+            let input = document.getElementById('diceInput').value;
+            const rollType = document.getElementById('rollType').value;
+            const rollAction = document.getElementById('rollAction').value;
+            const rollDamageType = document.getElementById('rollDamageType').value;
+            const resultDiv = document.getElementById('result');
+            const regex = /^(\d*)d(4|6|8|10|12|20|100)([+-]\d+)?$/;
+            const modifierOnlyRegex = /^[+-]\d+$/; // For input like "+3" or "-2"
+
+            let isModifierOnly = false;
+
+            // If the input is just a modifier like "+3", set default dice to "1d20"
+            if (modifierOnlyRegex.test(input)) {
+                input = "1d20" + input;
+                isModifierOnly = true;
+            }
+
+            const match = input.match(regex);
+
+            if (!match) {
+                resultDiv.innerHTML = "Invalid input. Please use the format (e.g., 2d6+1).";
+                return;
+            }
+
+            let rolls = parseInt(match[1]) || 1; // Default to 1 if no number before 'd'
+            let sides = parseInt(match[2]);
+            let modifier = match[3] || ''; // Get modifier, if any
+
+            // Format the input to add spaces around the "+" sign before the ";"
+            let formattedInput = `${rolls}d${sides}${modifier}`.replace(/\+/, ' + ');
+
+            // If it's modifier-only input, the output should only display the modifier part before the ";"
+            if (isModifierOnly) {
+                formattedInput = modifier.replace(/\+/, ' + ');
+            }
+
+            // Calculate the average of the dice roll only (without modifier)
+            let averageRoll = (sides) / 2; // Average of a single die roll
+            let totalAverageDice = rolls * averageRoll; // Total average of just the dice
+
+            // Total with the modifier added (if modifier exists)
+            let totalWithModifier = totalAverageDice + (modifier ? parseInt(modifier) : 0);
+
+            // Generate the formatted output with the correct text based on whether it's modifier-only
+            let formattedOutput;
+            if (isModifierOnly) {
+                formattedOutput = `[rollable]${modifier};{"diceNotation":"${input}","rollType":"${rollType}","rollAction":"${rollAction}","rollDamageType":"${rollDamageType}"}[/rollable]`;
+            } else {
+                formattedOutput = `[rollable]${totalWithModifier.toFixed(0)} (${formattedInput});{"diceNotation":"${input}","rollType":"${rollType}","rollAction":"${rollAction}","rollDamageType":"${rollDamageType}"}[/rollable]`;
+            }
+
+            // Display the result with the formatted output
+            resultDiv.innerHTML = `
+                <strong>Formatted Output:</strong><br>
+                ${formattedOutput}<br><br>
+                <strong>Average of Dice (without modifier):</strong> ${totalAverageDice.toFixed(2)}<br>
+                <strong>Modifier:</strong> ${modifier}<br>
+                <strong>Total:</strong> ${totalWithModifier.toFixed(0)}
+            `;
+        }
+    </script>
+</head>
+<body>
+    <h1>Dice Roller with Custom Modifier Display</h1>
+
+    <label for="diceInput">Enter your roll (e.g., 2d6+1 or +3): </label>
+    <input type="text" id="diceInput" placeholder="e.g., 2d6+1 or +3"><br><br>
+
+    <label for="rollType">Select Roll Type: </label>
+    <select id="rollType">
+        <option value="roll">Roll</option>
+        <option value="damage">Damage</option>
+        <option value="heal">Heal</option>
+        <option value="spell">Spell</option>
+        <option value="to hit">To Hit</option>
+    </select><br><br>
+
+    <label for="rollAction">Enter Roll Action Name: </label>
+    <input type="text" id="rollAction" placeholder="e.g., Fireball"><br><br>
+
+    <label for="rollDamageType">Enter Roll Damage Type: </label>
+    <input type="text" id="rollDamageType" placeholder="e.g., Fire, Ice, Poison"><br><br>
+
+    <button onclick="rollDice()">Roll</button>
+
+    <div id="result" style="margin-top: 20px; font-weight: bold;"></div>
+</body>
+</html>
