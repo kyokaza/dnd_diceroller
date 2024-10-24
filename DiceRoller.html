@@ -16,6 +16,7 @@
             const modifierOnlyRegex = /^[+-]\d+$/; // For input like "+3" or "-2"
 
             let isModifierOnly = false;
+            
 
             // If the input is just a modifier like "+3", set default dice to "1d20"
             if (modifierOnlyRegex.test(input)) {
